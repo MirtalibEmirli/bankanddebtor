@@ -1,0 +1,296 @@
+
+
+#include <iostream>
+using namespace std;
+
+#include <vector>
+#include <string>
+#include <cassert>
+#define BOLDYELLOW  "\033[1m\033[33m"  
+#define CYAN    "\033[36m"  
+#define RED     "\033[31m" 
+#define WHITE "\033[37m" 
+
+
+//-- Icini ozunuz  fikirleshin
+class Person
+{
+
+	size_t _id =0;
+	const char* _name ;
+	const char* _surname ;
+	const char* _workAddress ;
+	const char* _liveAddress ;
+	const char* _phoneNumber = new char[2] {"a"};
+	 double _salary = 0; 
+	static size_t _staticId;
+public:
+	
+	Person() {
+
+	_salary = 0;
+	_id = _staticId++;
+	_name       =nullptr ;
+	_surname    =nullptr;
+	_workAddress=nullptr ;
+	_phoneNumber = nullptr;
+
+	_liveAddress=nullptr ;
+}
+Person(const char* name, const char* surn, const char* wadres, const char* numbr, const char* livead, double salary) {
+	_name = Sett(name);
+	_surname = Sett(surn);
+	_workAddress = Sett(wadres);
+	_phoneNumber = Sett(numbr);
+	_liveAddress = Sett(livead);
+	_salary = salary;
+	_id = _staticId++;
+
+}
+	const char* Sett(const char* o) {
+
+		if (o != nullptr) {
+			if (strlen(o) > 3)
+				return o;
+			else
+				assert("too shorth ");
+		}
+
+		else 
+			assert(!"NULLL olmaz");  
+	} 
+
+	virtual bool isEmployee() { 
+		return 0; 
+	}   
+	// eyer true return ederse employee false return ederse Depor olur.
+	virtual void Print() = 0 {
+		cout<<RED<<"id => "<< WHITE<<_id<<endl;
+		cout << RED <<"name => " << WHITE <<_name<<endl;
+		cout << RED <<"surname => " << WHITE <<_surname << endl;
+		cout << RED <<"workAddress => " << WHITE <<_workAddress << endl;
+		cout << RED <<"liveAddress => " << WHITE <<_liveAddress << endl;
+		cout << RED <<"phoneNumber => " << WHITE <<_phoneNumber << endl;
+		cout << RED <<"salary => " << WHITE <<_salary << endl;
+	}
+	virtual double calculateTaxes() {
+		return _salary*10/100;
+
+	}
+
+
+	virtual double Getdebt() = 0;
+	virtual bool haslate(){ return 0; } 
+
+	virtual~Person() =0 { 
+		if (_name != nullptr) delete _name;
+		if (_surname != nullptr) delete _surname;
+		if (_workAddress != nullptr) delete _workAddress;
+		if (_liveAddress != nullptr) delete  _liveAddress;
+		if (_phoneNumber != nullptr) delete  _phoneNumber;
+	}
+};
+
+
+
+size_t Person::_staticId = 0;
+
+
+
+
+
+class Debtor : public Person { // (debtor-borclu)
+private:
+
+	bool _hasLatePayment=1;
+	double _debt=0;
+
+public:
+	double Getdebt() {
+
+		return _debt;
+	}
+
+	
+
+Debtor(double debt, bool payment, const char* name, const char* surn, const char* wadres, const char* numbr, const char* livead, double salary) : Person(name, surn, wadres, numbr, livead, salary)
+	{
+
+		_hasLatePayment = payment; 
+		_debt = debt;
+	}
+
+
+	void Print()override{
+		Person::Print();
+		cout<<CYAN << "hasLatePayment " << WHITE << _hasLatePayment << endl;
+		cout << CYAN <<  "debt " << WHITE << _debt << endl;		cout << endl;
+	}
+	
+	
+	
+	bool isEmployee() override { 
+		return 0; }
+
+	 bool haslate() override { return _hasLatePayment; }
+
+
+
+	double calculateTaxes() {
+		return (_debt * 20 / 100 + _debt);
+	}
+};
+
+
+
+class Employee :public Person
+{
+private:
+
+
+	bool _hasComputer=0;
+	bool _hasCar=0;
+public:
+	Employee(bool hasComputer, bool hasCar, const char* name, const char* surn, const char* wadres, const char* numbr, const char* livead, double salary) : Person(name, surn, wadres, numbr, livead, salary)
+	{
+
+		_hasCar = hasCar;
+		_hasComputer = hasComputer;
+	}
+
+	bool isEmployee() override { return 1; }
+	
+	double Getdebt() {
+		return 0;
+	}
+	void Print()override {
+		Person::Print();
+
+		cout << CYAN <<"hasComputer "<< _hasComputer << WHITE << endl;
+		cout << CYAN << "_hasCar " << _hasCar<<WHITE << endl<< endl;
+		     
+	}
+
+	double calculateTaxes() override {
+		Person::calculateTaxes();
+	}
+};
+
+//956senmenhecne
+class Bank  {
+private:
+	char *_name = NULL;
+	vector<Person*>   *_persons= new vector<Person*>();
+
+public:
+	Bank(vector<Person*> *p) {
+		_persons = p;
+	}
+	void printAllDebtors() {
+		for (size_t i = 0; i < _persons->size(); i++)
+			if (_persons->at(i)->isEmployee()==0 )
+			{
+				cout << BOLDYELLOW << "debtor => " << i-2 << WHITE << endl; 
+				_persons->at(i)->Print();
+
+			}
+
+
+
+	}
+
+	void printAllemployers() {
+		for (size_t i = 0; i < _persons->size(); i++)
+			if (_persons->at(i)->isEmployee())
+			{
+				cout << BOLDYELLOW << "employer => " << i + 1 << WHITE << endl;
+				_persons->at(i)->Print();
+
+			}
+
+
+
+	}
+	void printDebtorsDebtGreaterThan(double debt) {
+
+		for (size_t i = 0; i < _persons->size(); i++)
+		{ 
+			if (_persons->at(i)->Getdebt()>debt) {
+				_persons->at(i)->Print();
+			}
+
+		}
+	}
+	void printDebtorsWithDelays() {
+
+		for (size_t i = 0; i <_persons->size(); i++)
+		{
+			if (_persons->at(i)->haslate())
+				_persons->at(i)->Print();
+
+
+		}
+	}
+
+
+
+
+
+	~Bank() {
+		for (size_t i = 0; i < _persons->size(); i++) 
+		{
+			delete _persons->at(i);
+		}
+		delete _persons;
+
+
+
+	}
+};
+
+
+
+//QEYDLƏR 
+ 
+// Kechdiymiz her shey istifade etmek 
+// Constructors 
+// Destructors  
+// Accessors 
+// Assert 
+// Static 
+// Delegation of Constructors  
+// Initializer list 
+// Keywords 
+
+ 
+int main()
+{
+	
+	
+	Employee* e1 = new Employee(1,1,"Mirio","ULULULUL","BINEQEQD","0515880319", "EHMEDLI",2050); 
+	Employee* e12 = new Employee(1, 1, "Mirioss", "ULULULUL", "BINEQEQD", "0515880319", "EHMEDLI", 2050);
+	Employee* e13 = new Employee(1, 1, "Miriofsfs", "ULULULUL", "BINEQEQD", "0515880319", "EHMEDLI", 2050);
+	Debtor* e14 = new Debtor(1, 1, "Mirio", "ULULULUL", "BINEQEQD", "0515880319", "EHMEDLI", 2050);
+	Debtor* e15 = new Debtor(1, 1, "Mirio", "ULULULUL", "BINEQEQD", "0515880319", "EHMEDLI", 2050);
+	Debtor* e16 = new Debtor(1, 1, "Mirio", "ULULULUL", "BINEQEQD", "0515880319", "EHMEDLI", 2050);
+
+
+	vector<Person*> *p = new vector<Person*>();
+	p->push_back(e1); 
+	p->push_back(e12);
+	p->push_back(e13);
+	p->push_back(e14);
+	p->push_back(e15);
+	p->push_back(e16);
+
+	Bank b1(p);
+	b1.printAllDebtors();
+	cout << endl; 
+	cout << endl; 
+	cout << endl;
+	b1.printAllemployers();
+
+
+	
+
+}
